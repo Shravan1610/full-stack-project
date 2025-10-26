@@ -2,10 +2,16 @@ import { adminSupabase } from '@repo/database';
 
 export type PromoCodeFormData = {
   code: string;
-  discount_percent?: number;
-  active?: boolean;
-  starts_at?: string;
-  ends_at?: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed_amount';
+  discount_value: number;
+  min_purchase?: number;
+  max_discount?: number;
+  max_uses?: number;
+  max_uses_per_user?: number;
+  valid_from?: string;
+  valid_until?: string;
+  is_active?: boolean;
 };
 
 export async function getAdminPromoCodes() {

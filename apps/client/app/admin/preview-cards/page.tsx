@@ -238,7 +238,6 @@ export default function AdminPreviewCardsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

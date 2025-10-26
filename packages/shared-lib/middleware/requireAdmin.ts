@@ -2,6 +2,7 @@ import { adminSupabase } from '@repo/database';
 
 type AdminCheckResult = {
   userId: string;
+  role: string;
 };
 
 export async function requireAdmin(userId: string): Promise<AdminCheckResult> {
@@ -23,5 +24,5 @@ export async function requireAdmin(userId: string): Promise<AdminCheckResult> {
     throw new Error('Forbidden');
   }
 
-  return { userId: profile.id };
+  return { userId: profile.id, role: profile.role };
 }

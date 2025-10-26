@@ -9,20 +9,20 @@ export async function POST(request: Request, { params }: { params: { id: string 
     await requireAdmin(token);
 
     const id = params.id;
-    const { data: product, error: fetchError } = await adminSupabase.from('products').select('*').eq('id', id).maybeSingle();
+    const { data: product, error: fetchError } = await adminSupabase.from('products').select('*').eq('id', id).single();
     if (fetchError) throw fetchError;
     if (!product) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
-    const copy = {
-      ...product,
+    const copy: any = {
+      ...(product as any),
       id: undefined,
-      name: `${product.name} (Copy)`,
-      slug: `${product.slug}-copy-${Date.now()}`,
+      name: `${(product as any).name} (Copy)`,
+      slug: `${(product as any).slug}-copy-${Date.now()}`,
       created_at: undefined,
       updated_at: undefined,
-    } as any;
+    };
 
-    const { data: newProduct, error: createError } = await adminSupabase.from('products').insert([copy]).select().single();
+    const { data: newProduct, error: createError } = await (adminSupabase.from('products') as any).insert([copy]).select().single();
     if (createError) throw createError;
 
     return NextResponse.json({ ok: true, product: newProduct });

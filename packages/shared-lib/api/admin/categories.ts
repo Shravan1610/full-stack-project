@@ -3,7 +3,13 @@ import { adminSupabase } from '@repo/database';
 export type CategoryFormData = {
   name: string;
   slug: string;
+  description?: string;
   parent_id?: string | null;
+  image_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+  meta_title?: string;
+  meta_description?: string;
 };
 
 export async function getAdminCategories() {

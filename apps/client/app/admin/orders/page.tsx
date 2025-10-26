@@ -1,11 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card } from '@repo/shared-ui';
 import { Button } from '@repo/shared-ui';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
   const { isAdmin, loading } = useAdminAuth();
 
   if (loading) {

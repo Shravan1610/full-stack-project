@@ -9,7 +9,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     await requireAdmin(token);
 
     const id = params.id;
-    const { error } = await adminSupabase.from('products').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', id);
+    const { error } = await (adminSupabase.from('products') as any).update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err: any) {
@@ -42,7 +42,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     const id = params.id;
     const body = await request.json();
-    const updated = await adminSupabase.from('products').update({ ...body, updated_at: new Date().toISOString() }).eq('id', id).select().single();
+    const updated = await (adminSupabase.from('products') as any).update({ ...body, updated_at: new Date().toISOString() }).eq('id', id).select().single();
     if (updated.error) throw updated.error;
     return NextResponse.json({ ok: true, product: updated.data });
   } catch (err: any) {

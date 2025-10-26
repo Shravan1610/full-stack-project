@@ -24,9 +24,9 @@ export function createAdminClient(url?: string, serviceRoleKey?: string) {
  * Lazy-initialized admin client singleton.
  * This will be created on first access using environment variables from the calling context.
  */
-let _adminSupabase: ReturnType<typeof createClient> | null = null;
+let _adminSupabase: any | null = null;
 
-export const adminSupabase = new Proxy({} as ReturnType<typeof createClient>, {
+export const adminSupabase: any = new Proxy({} as any, {
   get(_target, prop) {
     if (!_adminSupabase) {
       _adminSupabase = createAdminClient();

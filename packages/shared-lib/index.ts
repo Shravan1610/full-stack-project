@@ -4,6 +4,7 @@ export * from './api/categories';
 export * from './api/cart';
 export * from './api/addresses';
 export * from './api/admin/products';
+export * from './api/admin/serverProducts';
 export * from './api/admin/orders';
 export * from './api/admin/customers';
 export * from './api/admin/categories';

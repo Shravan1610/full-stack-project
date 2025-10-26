@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface AdminLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
   loading?: boolean;
 }
 

@@ -97,7 +97,7 @@ export default function AdminPromoCodesPage() {
       description: promo.description,
       discount_type: promo.discount_type,
       discount_value: promo.discount_value,
-      min_purchase_amount: promo.min_purchase_amount,
+      min_purchase: promo.min_purchase,
       max_uses: promo.max_uses,
       valid_from: promo.valid_from,
       valid_until: promo.valid_until,
@@ -265,8 +265,8 @@ export default function AdminPromoCodesPage() {
                 <label className="text-sm font-medium mb-2 block">Min Purchase</label>
                 <Input
                   type="number"
-                  value={formData.min_purchase_amount || ''}
-                  onChange={(e) => setFormData({ ...formData, min_purchase_amount: parseFloat(e.target.value) })}
+                  value={formData.min_purchase || ''}
+                  onChange={(e) => setFormData({ ...formData, min_purchase: parseFloat(e.target.value) })}
                   placeholder="0"
                 />
               </div>

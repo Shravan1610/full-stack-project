@@ -23,8 +23,6 @@ export default function AdminCategoriesPage() {
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
     slug: '',
-    description: '',
-    is_active: true,
   });
 
   useEffect(() => {
@@ -120,8 +118,6 @@ export default function AdminCategoriesPage() {
     setFormData({
       name: '',
       slug: '',
-      description: '',
-      is_active: true,
     });
   };
 
@@ -223,7 +219,7 @@ export default function AdminCategoriesPage() {
             <div>
               <label className="text-sm font-medium mb-2 block">Description</label>
               <Input
-                value={formData.description}
+                value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Category description"
               />
