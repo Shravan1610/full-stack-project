@@ -73,8 +73,8 @@ export function useAdminAuth(redirectOnFail: boolean = true): AdminAuthState {
         return;
       }
 
-      // Check admin role
-      const isAdmin = profile.role === 'admin';
+      // Check admin role (both 'admin' and 'super_admin' have access)
+      const isAdmin = profile.role === 'admin' || profile.role === 'super_admin';
       console.log('[useAdminAuth] Is admin:', isAdmin);
 
       if (!isAdmin) {

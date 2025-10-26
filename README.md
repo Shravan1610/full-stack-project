@@ -1,10 +1,29 @@
-# ShoeHub E-Commerce Platform - Complete Setup Guide
+# ShoeHub E-Commerce Platform - Complete Guide
 
-> **🎉 Ready to Use!** This is your complete guide to ShoeHub - a unified e-commerce platform for footwear with customer storefront and admin portal in one application.
+> **🎉 Production Ready!** A unified e-commerce platform for footwear with customer storefront and admin portal in one application.
 
 **Status:** ✅ All features implemented and working
 **Architecture:** Single-app with role-based access control
 **Last Updated:** October 26, 2025
+
+---
+
+## 📚 Table of Contents
+
+- [Quick Start](#-quick-start-3-minutes)
+- [Admin Portal Access Issues](#-admin-portal-access-troubleshooting)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Features](#-features)
+- [Database Schema](#%EF%B8%8F-database-schema)
+- [Getting Started](#-getting-started)
+- [Application Routes](#%EF%B8%8F-application-routes)
+- [Access Control](#-access-control)
+- [Admin Navigation](#-admin-navigation-guide)
+- [Interactive Product Cards](#-interactive-product-cards)
+- [Address Management](#-address-management-system)
+- [Deployment](#-deployment)
+- [Troubleshooting](#-troubleshooting)
+- [Customization](#-customization)
 
 ---
 
@@ -16,14 +35,101 @@ npm run dev
 ```
 Visit: **http://localhost:3000**
 
-### 2️⃣ Create Admin User
-1. Sign up at http://localhost:3000/auth/signup
-2. Go to Supabase Dashboard: https://supabase.com/dashboard/project/ribcvlvrxcadztnxqhce
-3. Table Editor → profiles → Set your role to `admin`
-4. Sign in again
+### 2️⃣ Create Admin User (Easy Method) ⭐
+```bash
+# Sign up first at http://localhost:3000/auth/signup
+# Then run this command with your email:
+node make-admin.js your@email.com
+```
+
+**Alternative Method** (Manual):
+1. Go to Supabase Dashboard: https://supabase.com/dashboard/project/ribcvlvrxcadztnxqhce
+2. Table Editor → profiles → Find your user → Set role to `admin`
+3. Sign out and sign in again
 
 ### 3️⃣ Access Admin Portal
 Visit: **http://localhost:3000/admin**
+
+---
+
+## 🔧 Admin Portal Access Troubleshooting
+
+### Problem: "Authorized users cannot access admin portal"
+
+This is a common issue. Here's how to fix it:
+
+#### ✅ Fix #1: Use the Admin Creation Utility (Recommended)
+
+```bash
+# After signing up, run:
+node make-admin.js your@email.com
+```
+
+The script will:
+- ✅ Find your user in the database
+- ✅ Check current role
+- ✅ Promote to admin
+- ✅ Confirm success
+
+#### ✅ Fix #2: Manual Database Update
+
+1. Open Supabase SQL Editor
+2. Run this query:
+```sql
+UPDATE profiles 
+SET role = 'admin' 
+WHERE email = 'your@email.com';
+```
+
+#### ✅ Fix #3: Check User Exists
+
+```sql
+-- Verify user profile exists
+SELECT id, email, role FROM profiles WHERE email = 'your@email.com';
+```
+
+If no results: The user hasn't signed up or profile wasn't created.
+
+#### ✅ Fix #4: Verify Database Migration
+
+Run this in Supabase SQL Editor to check if tables exist:
+```sql
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+```
+
+Should show: profiles, products, orders, etc.
+
+If tables don't exist, run the migration:
+- File: `packages/database/supabase/migrations/20241026000001_create_improved_ecommerce_schema.sql`
+- Copy entire contents and run in Supabase SQL Editor
+
+#### 🔍 Debug Checklist
+
+Open browser console (F12) when trying to access `/admin`:
+
+**Expected Console Output (Success):**
+```
+[useAdminAuth] Starting admin access check...
+[useAdminAuth] User: Found (your@email.com)
+[useAdminAuth] Profile: Found (role: admin)
+[useAdminAuth] Is admin: true
+[useAdminAuth] Admin check complete. Admin: true
+```
+
+**If you see:**
+- `User: None` → Not signed in (go to `/auth/signin`)
+- `Profile: None` → Profile wasn't created (database issue)
+- `role: customer` → Need to promote to admin (use make-admin.js)
+- `Is admin: false` → Role check failed (verify role is 'admin' or 'super_admin')
+
+#### 💡 Common Mistakes
+
+1. **Not signing out after promotion** → Always sign out and sign back in
+2. **Wrong email** → Double-check email matches exactly
+3. **Database not migrated** → Run the migration first
+4. **Browser cache** → Clear cache and hard reload (Ctrl+Shift+R)
 
 ---
 
@@ -42,22 +148,26 @@ project/
 │   │   ├── /account                # Customer: Account pages
 │   │   ├── /auth                   # Public: Sign in/up
 │   │   └── /admin                  # 🔐 Admin: Management portal
-│   │       ├── /admin              # Dashboard
-│   │       ├── /admin/products     # Product management
-│   │       ├── /admin/orders       # Order management
-│   │       ├── /admin/customers    # Customer management
-│   │       ├── /admin/categories   # Category management
-│   │       ├── /admin/promo-codes  # Promo codes
-│   │       └── /admin/analytics    # Analytics
+│   │       ├── layout.tsx          # ✨ Auto-auth wrapper
+│   │       ├── page.tsx            # Dashboard
+│   │       ├── products/           # Product management
+│   │       ├── orders/             # Order management
+│   │       ├── customers/          # Customer management
+│   │       ├── categories/         # Category management
+│   │       ├── promo-codes/        # Promo codes
+│   │       └── analytics/          # Analytics
 │   └── components/
-│       ├── layout/Header.tsx       # Customer navigation
-│       ├── admin/AdminSidebar.tsx  # Admin navigation
-│       └── blocks/Navbar1.tsx      # Modern navbar component
+│       ├── layout/                 # Customer UI
+│       ├── admin/                  # Admin UI
+│       │   ├── AdminLayout.tsx     # Layout wrapper
+│       │   ├── AdminSidebar.tsx    # Navigation sidebar
+│       │   └── AdminBreadcrumb.tsx # Breadcrumb navigation
+│       └── blocks/                 # Reusable sections
 ├── packages/
 │   ├── database/                   # Supabase client & types
 │   ├── shared-lib/                 # Business logic & APIs
 │   └── shared-ui/                  # Reusable UI components
-└── _archived/                      # Deprecated admin app
+└── make-admin.js                   # 🆕 Admin creation utility
 ```
 
 **Benefits:** ✅ Single deployment • ✅ Shared authentication • ✅ Cost effective • ✅ Better UX
@@ -75,6 +185,7 @@ project/
 - **Account Management** - Profile, order history, addresses
 - **Checkout Flow** - Ready for payment integration
 - **Responsive Design** - Mobile-first across all devices
+- **Interactive Product Cards** - 3D tilt effect premium showcase
 
 ### Admin Portal (`/admin/*` routes)
 - **Dashboard** - Real-time stats and analytics overview
@@ -85,6 +196,8 @@ project/
 - **Inventory Tracking** - Low stock alerts and reservations
 - **Promo Codes** - Discount code management
 - **Analytics** - Product performance and sales metrics
+- **Preview Cards** - Interactive product card builder
+- **Mobile Responsive** - Drawer sidebar, touch-friendly
 
 ### Technical Features
 - **Monorepo Setup** - npm workspaces for code sharing
@@ -93,14 +206,16 @@ project/
 - **Type Safety** - Full TypeScript implementation
 - **Shared Packages** - Reusable components and utilities
 - **Authentication** - Role-based access control
-- **Admin Auth Hook** - Consistent admin authentication across all pages
+- **Admin Auth Hook** - Consistent admin authentication
+- **Centralized Navigation** - Single source of truth
+- **Error Handling** - Beautiful error pages
 
 ---
 
 ## 🗃️ Database Schema
 
 ### Core Tables (14 total)
-1. **profiles** - User accounts linked to Supabase Auth
+1. **profiles** - User accounts with roles ('customer', 'admin', 'super_admin')
 2. **categories** - Product categories with hierarchy
 3. **products** - Main catalog with full-text search
 4. **product_images** - Multiple images per product
@@ -122,6 +237,11 @@ project/
 - ✅ **Inventory reservations** (prevents overselling)
 - ✅ **Soft deletes** with `archived_at`
 - ✅ **Audit trails** and analytics views
+
+### User Roles
+- **customer** - Default role for all new users
+- **admin** - Full admin access to all features
+- **super_admin** - Reserved for future enhanced permissions
 
 ---
 
@@ -148,11 +268,19 @@ npm install
    - Run: `packages/database/supabase/migrations/20241026000001_create_improved_ecommerce_schema.sql`
    - This creates all 14 tables with proper indexes and policies
 
-4. **Generate TypeScript types (optional):**
+4. **Create your first admin user:**
 ```bash
-cd packages/database
-supabase gen types typescript --linked > supabase/types.ts
+# Sign up at http://localhost:3000/auth/signup first
+# Then run:
+node make-admin.js your@email.com
 ```
+
+5. **Start the application:**
+```bash
+npm run dev
+```
+
+Visit http://localhost:3000
 
 ### Development Commands
 
@@ -182,6 +310,7 @@ npm run clean           # Clean build artifacts
 | `/products/[slug]` | Individual product page |
 | `/auth/signin` | Sign in page |
 | `/auth/signup` | Sign up page |
+| `/demo/interactive-card` | Interactive card demo |
 
 ### Customer Routes (Login Required)
 | Route | Description |
@@ -202,6 +331,8 @@ npm run clean           # Clean build artifacts
 | `/admin/categories` | Manage categories |
 | `/admin/promo-codes` | Manage promo codes |
 | `/admin/analytics` | View analytics |
+| `/admin/preview-cards` | Interactive card builder |
+| `/admin/unauthorized` | Error page for non-admin users |
 
 ---
 
@@ -209,21 +340,27 @@ npm run clean           # Clean build artifacts
 
 ### How Admin Access Works
 1. User visits `/admin`
-2. `useAdminAuth` hook checks authentication
-3. Verifies admin role in database
-4. If not admin → redirects to homepage
-5. If not authenticated → redirects to signin
-6. If admin → shows admin content
+2. `layout.tsx` automatically runs `useAdminAuth` hook
+3. Hook checks authentication status
+4. Hook verifies admin/super_admin role in database
+5. If not admin → redirects to `/admin/unauthorized`
+6. If not authenticated → redirects to `/auth/signin?redirect=/admin`
+7. If admin → shows admin content
 
 ### Creating Admin Users
 
-**Method 1: Supabase Dashboard**
+**Method 1: Admin Utility Script (Recommended) ⭐**
+```bash
+node make-admin.js user@example.com
+```
+
+**Method 2: Supabase Dashboard**
 1. Go to https://supabase.com/dashboard/project/ribcvlvrxcadztnxqhce
 2. Table Editor → profiles
 3. Find your user → Set role to `admin`
 4. Sign out and sign back in
 
-**Method 2: SQL Editor**
+**Method 3: SQL Editor**
 ```sql
 UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
 ```
@@ -240,58 +377,153 @@ Open browser console (F12) when accessing `/admin`:
 
 ---
 
-## 📦 Packages
+## 🎯 Admin Navigation Guide
 
-### `@repo/database`
-Supabase client configuration and TypeScript types.
+### Centralized Configuration
 
-**Exports:**
-- `supabase` - Supabase client instance
-- `createAdminClient()` - Admin client with service role
-- `signUp()`, `signIn()`, `signOut()` - Auth helpers
-- All database types (Profile, Product, Order, etc.)
+All admin navigation is configured in one place: `apps/client/config/admin-navigation.ts`
 
-### `@repo/shared-lib`
-API helpers, utilities, and business logic.
+**Navigation Items:**
+- Dashboard - Overview and statistics
+- Products - Product management
+- Orders - Order processing
+- Customers - Customer database
+- Categories - Category organization
+- Promo Codes - Discount management
+- Analytics - Business insights
+- Preview Cards - Card builder tool
 
-**Exports:**
-- Product API: `getProducts()`, `getProductBySlug()`, etc.
-- Cart API: `getOrCreateCart()`, `addToCart()`, etc.
-- Admin APIs: Products, Orders, Customers, Analytics
-- `cn()` - Tailwind utility function
+### Features
+- ✅ **Automatic Authentication** - Layout handles auth for all pages
+- ✅ **Mobile Responsive** - Drawer sidebar on mobile
+- ✅ **Breadcrumb Navigation** - Auto-generated from URL
+- ✅ **Active State** - Highlights current page
+- ✅ **Loading States** - Beautiful skeleton loaders
+- ✅ **Error Pages** - Custom 404 and unauthorized pages
 
-### `@repo/shared-ui`
-Reusable UI components built with shadcn/ui.
+### Adding a New Admin Page
 
-**Exports:**
-- All shadcn/ui components (Button, Card, Dialog, etc.)
-- `useToast()` hook
-- Form components
-- Layout primitives
+**Step 1**: Create the page file
+```tsx
+// apps/client/app/admin/new-feature/page.tsx
+'use client';
+
+export default function NewFeaturePage() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold">New Feature</h1>
+      <p>Your content here...</p>
+    </div>
+  );
+}
+```
+
+**Step 2**: Add to navigation config
+```typescript
+// apps/client/config/admin-navigation.ts
+import { NewIcon } from 'lucide-react';
+
+export const adminNavigation = [
+  // ... existing items
+  {
+    id: 'new-feature',
+    name: 'New Feature',
+    href: '/admin/new-feature',
+    icon: NewIcon,
+    description: 'Manage new feature',
+  },
+];
+```
+
+**That's it!** The page is now:
+- ✅ Protected by authentication
+- ✅ Wrapped in AdminLayout
+- ✅ Shows in sidebar
+- ✅ Has breadcrumb navigation
+- ✅ Mobile responsive
 
 ---
 
-## 🧪 Testing
+## 🎨 Interactive Product Cards
 
-### Customer Features
-- [ ] Browse homepage and products
-- [ ] Add items to cart
-- [ ] Sign up for account
-- [ ] Complete checkout flow
-- [ ] Edit profile information
+### Features
+- ✨ **3D Tilt Effect** - Follows mouse movement
+- 🎭 **Glassmorphism** - Modern semi-transparent design
+- 🌈 **Gradient Overlays** - Ensures text readability
+- 🔄 **Smooth Animations** - Hardware-accelerated
+- 📱 **Responsive** - Works on all screen sizes
 
-### Admin Features
-- [ ] Create admin user in database
-- [ ] Access `/admin` dashboard
-- [ ] Manage products (add/edit/delete)
-- [ ] Manage orders
-- [ ] Manage categories
-- [ ] View analytics
+### Usage
 
-### Access Control
-- [ ] Non-admin users redirected from `/admin`
-- [ ] Admin users can access all routes
-- [ ] Proper authentication flow
+**Quick Integration (Easiest):**
+```tsx
+import { PremiumShowcase } from "@/components/blocks/PremiumShowcase";
+
+<PremiumShowcase limit={6} theme="dark" />
+```
+
+**Individual Cards:**
+```tsx
+import { InteractiveProductCard } from "@/components/ui/card-7";
+
+<InteractiveProductCard
+  title="Nike M2K Tekno"
+  description="Elevate Your Every Step"
+  price="$149"
+  imageUrl="https://images.unsplash.com/photo-1542291026-7eec264c27ff"
+  logoUrl="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
+/>
+```
+
+### Demo Pages
+- **User Demo**: http://localhost:3000/demo/interactive-card
+- **Admin Builder**: http://localhost:3000/admin/preview-cards
+
+### Props Reference
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `title` | string | Yes | Product name |
+| `description` | string | Yes | Short tagline |
+| `price` | string | Yes | Display price |
+| `imageUrl` | string | Yes | Product image URL |
+| `logoUrl` | string | Yes | Brand logo URL |
+| `className` | string | No | Additional CSS classes |
+
+---
+
+## 📍 Address Management System
+
+**Status:** ✅ Fully Implemented
+
+### Features
+- ✅ **Add New Addresses** - Full address form with validation
+- ✅ **Edit Existing Addresses** - Update any saved address
+- ✅ **Delete Addresses** - Remove addresses with confirmation
+- ✅ **Set Default Address** - Mark preferred address
+- ✅ **Multiple Address Types** - Shipping, Billing, or Both
+- ✅ **Address Cards** - Beautiful card display with badges
+- ✅ **Mobile Responsive** - Works perfectly on all devices
+
+### How to Access
+1. Sign in to your account
+2. Click your name → "Addresses"
+3. Or visit: http://localhost:3000/account/addresses
+
+### Address Types
+- 🚚 **Shipping** - For deliveries
+- 💳 **Billing** - For payments
+- 📦 **Both** - Dual purpose
+
+### API Functions
+```typescript
+// Available in @repo/shared-lib
+getAddresses(userId)         // Get all user addresses
+getDefaultAddress(userId)    // Get default address
+createAddress(userId, data)  // Add new address
+updateAddress(addressId, data) // Update address
+deleteAddress(addressId)     // Remove address
+setDefaultAddress(userId, addressId) // Set default
+```
 
 ---
 
@@ -316,79 +548,73 @@ Reusable UI components built with shadcn/ui.
    vercel --prod
    ```
 
-### Alternative: Manual Deployment
-- Build: `npm run build`
-- Deploy `apps/client/.next` folder
-- Set environment variables
+### Post-Deployment Setup
+1. Run database migration in Supabase
+2. Create admin users using SQL or utility script
+3. Test admin portal access
+4. Upload product data
+5. Configure domain settings
 
 ---
 
 ## 🆘 Troubleshooting
 
 ### Admin Portal Issues
-**Problem:** Can't access `/admin` (redirects to home)
+**Problem:** Can't access `/admin` (redirects to unauthorized)
+
 **Solutions:**
 1. Check role in database: `SELECT role FROM profiles WHERE email = 'your@email.com'`
-2. Should return: `role = 'admin'`
-3. Clear browser cache and sign in again
-4. Check console logs for `[useAdminAuth]` messages
+2. Should return: `role = 'admin'` or `'super_admin'`
+3. Use admin utility: `node make-admin.js your@email.com`
+4. Clear browser cache and sign in again
+5. Check console logs for `[useAdminAuth]` messages
+6. Verify you signed out and signed back in after role change
 
 ### Environment Variable Issues
 **Problem:** "supabaseKey is required" error
+
 **Solution:**
 1. Stop dev server (Ctrl+C)
 2. Clear cache: `rm -rf apps/client/.next`
-3. Restart: `npm run dev`
+3. Verify `.env.local` exists in `apps/client/`
+4. Restart: `npm run dev`
 
 ### Database Issues
 **Problem:** Tables don't exist
+
 **Solution:**
 1. Run migration in Supabase SQL Editor
-2. Regenerate types: `supabase gen types typescript`
+2. File: `packages/database/supabase/migrations/20241026000001_create_improved_ecommerce_schema.sql`
+3. Verify tables exist: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`
 
-### Build Issues
-**Problem:** TypeScript or import errors
+### TypeScript Errors
+**Problem:** Type errors or import issues
+
 **Solutions:**
 1. Clean install: `npm run clean && npm install`
 2. Check imports use correct aliases (`@repo/database`, `@/components`)
-3. Regenerate database types
+3. Ensure all types are synced (role types updated)
+4. Rebuild: `npm run build`
 
----
+### Build Issues
+**Problem:** Build fails or runtime errors
 
-## 📁 File Structure Details
+**Solutions:**
+1. Check Node.js version (18+ required)
+2. Delete `node_modules` and reinstall
+3. Clear Next.js cache: `rm -rf apps/client/.next`
+4. Check for circular dependencies
+5. Review error logs carefully
 
-### Key Files
-```
-apps/client/
-├── app/
-│   ├── admin/                     # All admin pages
-│   │   ├── page.tsx               # Dashboard
-│   │   ├── products/page.tsx      # Product management
-│   │   ├── orders/page.tsx        # Order management
-│   │   ├── customers/page.tsx     # Customer management
-│   │   ├── categories/page.tsx    # Category management
-│   │   ├── promo-codes/page.tsx   # Promo codes
-│   │   └── analytics/page.tsx     # Analytics
-│   ├── account/
-│   │   └── profile/page.tsx       # User profile editing
-│   └── auth/                      # Authentication pages
-├── components/
-│   ├── layout/Header.tsx          # Customer navigation
-│   ├── admin/AdminSidebar.tsx     # Admin navigation
-│   └── blocks/Navbar1.tsx         # Modern navbar component
-├── hooks/
-│   └── useAdminAuth.ts            # Admin authentication hook
-└── contexts/
-    └── AuthContext.tsx            # Authentication context
-```
+### Authentication Flow Issues
+**Problem:** Users can't sign in or sign up
 
-### Shared Packages
-```
-packages/
-├── database/                      # Supabase setup
-├── shared-lib/                    # Business logic & APIs
-└── shared-ui/                     # UI components
-```
+**Solutions:**
+1. Verify Supabase URL and keys are correct
+2. Check email confirmation settings in Supabase
+3. Review RLS policies in database
+4. Clear browser cookies
+5. Test with different browser/incognito
 
 ---
 
@@ -398,11 +624,13 @@ packages/
 1. **UI Components:** Add to `packages/shared-ui/ui/`
 2. **API Functions:** Add to `packages/shared-lib/api/`
 3. **Database Changes:** Update migration files in `packages/database/supabase/migrations/`
+4. **Admin Pages:** Follow the admin page creation guide above
 
 ### Styling
 - Uses Tailwind CSS with shadcn/ui components
 - Primary colors: Blue (`blue-600`, `blue-700`)
 - Consistent design system throughout
+- Customize in `tailwind.config.ts`
 
 ### Adding Dependencies
 ```bash
@@ -411,7 +639,50 @@ npm install <package>
 
 # Specific workspace
 npm install <package> -w apps/client
+npm install <package> -w packages/database
 ```
+
+### Branding
+**Current:** ShoeHub (Footwear E-Commerce)
+
+**To Customize:**
+1. Update logo and name in `Header.tsx`
+2. Change navigation items in `admin-navigation.ts`
+3. Update database categories
+4. Modify product descriptions
+5. Update metadata and SEO
+
+---
+
+## 📦 Packages
+
+### `@repo/database`
+Supabase client configuration and TypeScript types.
+
+**Exports:**
+- `supabase` - Supabase client instance
+- `createAdminClient()` - Admin client with service role
+- `signUp()`, `signIn()`, `signOut()` - Auth helpers
+- All database types (Profile, Product, Order, etc.)
+
+### `@repo/shared-lib`
+API helpers, utilities, and business logic.
+
+**Exports:**
+- Product API: `getProducts()`, `getProductBySlug()`, etc.
+- Cart API: `getOrCreateCart()`, `addToCart()`, etc.
+- Admin APIs: Products, Orders, Customers, Analytics
+- Address API: Full address management
+- `cn()` - Tailwind utility function
+
+### `@repo/shared-ui`
+Reusable UI components built with shadcn/ui.
+
+**Exports:**
+- All shadcn/ui components (Button, Card, Dialog, etc.)
+- `useToast()` hook
+- Form components
+- Layout primitives
 
 ---
 
@@ -420,13 +691,7 @@ npm install <package> -w apps/client
 ### Seed Sample Data
 Run in Supabase SQL Editor:
 ```sql
--- Insert categories and products
--- (See FINAL_SETUP_GUIDE.md for complete SQL)
-```
-
-### Create Admin User
-```sql
-UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
+-- See seed-data.sql for complete SQL
 ```
 
 ### View Analytics
@@ -436,60 +701,36 @@ SELECT * FROM product_analytics ORDER BY total_revenue DESC;
 
 -- Low stock alerts
 SELECT * FROM low_stock_alerts;
+
+-- Recent orders
+SELECT * FROM orders ORDER BY created_at DESC LIMIT 10;
 ```
 
----
+### Maintenance Commands
+```bash
+# Check database connection
+node check-database.js
 
-## 🎯 What Changed (Implementation Summary)
+# Verify schema
+node verify-schema.js
 
-### Before (Issues Fixed)
-- ❌ Admin pages had inconsistent authentication
-- ❌ Redirect loops even with admin role
-- ❌ No debugging capabilities
-- ❌ Mixed authentication patterns
-- ❌ No user profile editing
-
-### After (Features Added)
-- ✅ **useAdminAuth hook** - Consistent admin authentication
-- ✅ **Enhanced navigation** - Modern navbar and admin sidebar
-- ✅ **Profile management** - Users can edit their details
-- ✅ **Debugging tools** - Console logs for troubleshooting
-- ✅ **Professional UI** - Loading states, success notifications
-- ✅ **Mobile responsive** - Works on all devices
-
-### Admin Portal Status
-- ✅ `/admin` - Dashboard with real-time stats
-- ✅ `/admin/products` - Full product CRUD
-- ✅ `/admin/orders` - Order management
-- ✅ `/admin/customers` - Customer management
-- ✅ `/admin/categories` - Category management
-- ✅ `/admin/promo-codes` - Promo code management
-- ✅ `/admin/analytics` - Analytics dashboard
-
----
-
-## 📚 Documentation Reference
-
-This README.md consolidates all documentation from:
-- **Setup Instructions** - Complete installation guide
-- **Architecture Guide** - System design and structure
-- **Admin Implementation** - Navigation and authentication improvements
-- **Deployment Guide** - Production deployment steps
-- **Troubleshooting** - Common issues and solutions
-
-**No other MD files needed!** Everything is here in one comprehensive guide.
+# Seed database
+node seed-database.js
+```
 
 ---
 
 ## 🎉 Success Checklist
 
 - [ ] ✅ Database schema deployed to Supabase
-- [ ] ✅ Admin user created in profiles table
+- [ ] ✅ Admin user created (using make-admin.js)
 - [ ] ✅ App running on http://localhost:3000
 - [ ] ✅ Can access admin portal at /admin
 - [ ] ✅ Can edit user profile at /account/profile
+- [ ] ✅ Address management working
 - [ ] ✅ Customer features working (cart, checkout)
 - [ ] ✅ Admin features working (product management)
+- [ ] ✅ Interactive cards displaying correctly
 - [ ] ✅ No TypeScript or linting errors
 
 ---
@@ -497,11 +738,119 @@ This README.md consolidates all documentation from:
 ## 🚀 Next Steps
 
 1. **Test Everything** - Run through the testing checklist
-2. **Customize Styling** - Update colors and branding as needed
-3. **Add Content** - Upload products and images
-4. **Deploy** - Push to production when ready
-5. **Integrate Payments** - Add Stripe or other payment processor
-6. **Add Email** - Set up notifications (Resend, SendGrid)
+2. **Create Admin User** - Use `make-admin.js` utility
+3. **Add Products** - Use admin portal to add inventory
+4. **Customize Styling** - Update colors and branding
+5. **Deploy** - Push to production when ready
+6. **Integrate Payments** - Add Stripe or other payment processor
+7. **Add Email** - Set up notifications (Resend, SendGrid)
+8. **SEO** - Optimize metadata and sitemaps
+
+---
+
+## 🎓 Learning Resources
+
+### Documentation
+- This README - Complete guide
+- Inline code comments - Implementation details
+- Demo pages - Interactive examples
+- Console logs - Debugging information
+
+### Key Files to Understand
+- `apps/client/app/admin/layout.tsx` - Admin authentication wrapper
+- `apps/client/hooks/useAdminAuth.ts` - Admin auth logic
+- `apps/client/config/admin-navigation.ts` - Navigation configuration
+- `packages/database/supabase/types.ts` - Database types
+- `make-admin.js` - Admin creation utility
+
+---
+
+## 📝 Common Tasks
+
+### Create Admin User
+```bash
+node make-admin.js user@example.com
+```
+
+### Add New Admin Page
+1. Create file in `apps/client/app/admin/[page-name]/page.tsx`
+2. Add navigation item to `config/admin-navigation.ts`
+3. Done!
+
+### Add Product via SQL
+```sql
+INSERT INTO products (name, slug, description, base_price, is_featured)
+VALUES ('Running Shoes', 'running-shoes', 'Comfortable running shoes', 129.99, true);
+```
+
+### Check User Role
+```sql
+SELECT email, role FROM profiles WHERE email = 'user@example.com';
+```
+
+### Update User Role
+```sql
+UPDATE profiles SET role = 'admin' WHERE email = 'user@example.com';
+```
+
+---
+
+## 💡 Pro Tips
+
+1. **Always sign out and sign back in** after changing roles
+2. **Use the make-admin.js script** instead of manual SQL when possible
+3. **Check browser console** for detailed debug logs
+4. **Clear cache** if you see stale data
+5. **Test in incognito** to verify authentication flows
+6. **Use demo pages** to preview components before integration
+7. **Keep database types synced** with schema changes
+8. **Backup database** before major migrations
+9. **Test on mobile** - many users shop on phones
+10. **Monitor RLS policies** - they affect performance
+
+---
+
+## 🤝 Support
+
+### Getting Help
+1. Check this README for common issues
+2. Review console logs for errors
+3. Verify database connection
+4. Test with demo pages first
+5. Check Supabase dashboard for data
+
+### Reporting Issues
+When reporting issues, include:
+- Error messages from console
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser and OS information
+- Screenshot if applicable
+
+---
+
+## 📜 Version History
+
+### v1.2.0 (Current)
+- ✅ Fixed admin authentication issues
+- ✅ Added `make-admin.js` utility script
+- ✅ Updated types to include super_admin role
+- ✅ Enhanced error handling and logging
+- ✅ Consolidated documentation
+
+### v1.1.0
+- ✅ Address management system
+- ✅ Interactive product cards
+- ✅ Admin navigation improvements
+- ✅ Mobile responsive design
+- ✅ ShoeHub rebranding
+
+### v1.0.0
+- ✅ Initial release
+- ✅ Customer storefront
+- ✅ Admin portal
+- ✅ Database schema
+- ✅ Authentication system
 
 ---
 
@@ -511,271 +860,7 @@ This README.md consolidates all documentation from:
 
 ---
 
-## 📍 **NEW: Address Management System**
+**Last Updated:** October 26, 2025  
+**Maintainers:** Development Team  
+**License:** Proprietary
 
-**Status:** ✅ Fully Implemented
-**Version:** 1.1.0
-**Added:** October 26, 2025
-
-### **Features**
-
-Users can now manage multiple shipping and billing addresses from their account:
-
-- ✅ **Add New Addresses** - Full address form with validation
-- ✅ **Edit Existing Addresses** - Update any saved address
-- ✅ **Delete Addresses** - Remove addresses with confirmation
-- ✅ **Set Default Address** - Mark preferred address
-- ✅ **Multiple Address Types** - Shipping, Billing, or Both
-- ✅ **Address Cards** - Beautiful card display with badges
-- ✅ **Mobile Responsive** - Works perfectly on all devices
-
-### **How to Access**
-
-**Desktop:**
-1. Sign in to your account
-2. Click your name → "Addresses"
-3. Or visit: http://localhost:3000/account/addresses
-
-**Mobile:**
-1. Sign in to your account
-2. Open menu → "My Addresses"
-3. Or navigate from profile section
-
-### **Address Features**
-
-**Required Fields:**
-- Full Name
-- Phone Number
-- Address Line 1
-- City
-- State/Province
-- Postal Code
-- Country
-
-**Optional Fields:**
-- Address Line 2 (Apartment, suite, etc.)
-
-**Address Types:**
-- 🚚 Shipping - For deliveries
-- 💳 Billing - For payments
-- 📦 Both - Dual purpose
-
-**Smart Features:**
-- ⭐ Default address auto-selected
-- 🎯 One-click set as default
-- ✏️ Inline editing
-- 🗑️ Confirmation before delete
-- ✅ Real-time validation
-- 📱 Mobile-friendly forms
-
-### **Database Schema**
-
-The `addresses` table includes:
-```sql
-- id (uuid)
-- user_id (foreign key)
-- type (shipping | billing | both)
-- is_default (boolean)
-- full_name (text)
-- phone_number (text)
-- address_line1 (text)
-- address_line2 (text, optional)
-- city (text)
-- state_province (text)
-- postal_code (text)
-- country (text)
-- created_at, updated_at (timestamps)
-```
-
-### **API Functions**
-
-New address management APIs in `@repo/shared-lib`:
-- `getAddresses(userId)` - Get all user addresses
-- `getDefaultAddress(userId)` - Get default address
-- `createAddress(userId, data)` - Add new address
-- `updateAddress(addressId, data)` - Update address
-- `deleteAddress(addressId)` - Remove address
-- `setDefaultAddress(userId, addressId)` - Set default
-
-### **Files Added**
-
-1. **`packages/shared-lib/api/addresses.ts`** - API functions
-2. **`apps/client/components/account/AddressCard.tsx`** - Address display card
-3. **`apps/client/components/account/AddressForm.tsx`** - Add/Edit form
-4. **`apps/client/app/account/addresses/page.tsx`** - Address management page
-
-### **Navigation Updates**
-
-Address management is now accessible from:
-- Desktop: User dropdown menu → "Addresses"
-- Mobile: Hamburger menu → "My Addresses"
-- Mobile: Quick links → "Addresses"
-- Direct URL: `/account/addresses`
-
----
-
-## 👟 **NEW: ShoeHub Branding**
-
-**Status:** ✅ Rebranded from StyleHub to ShoeHub
-**Focus:** Footwear and Shoe E-Commerce
-
-### **Updated Categories**
-
-**Shop Menu:**
-- All Shoes - Complete footwear collection
-- Men's Shoes - Sneakers, boots, formal shoes
-- Women's Shoes - Heels, flats, sneakers, sandals
-- Kids' Shoes - Comfortable children's footwear
-
-**Categories Menu:**
-- 👟 Sneakers - Athletic and casual
-- 🥾 Boots - Winter and ankle boots
-- 🩴 Sandals - Summer footwear
-- 👞 Formal Shoes - Dress and business shoes
-
-### **Updated Branding**
-
-- ✅ Logo: "ShoeHub" instead of "StyleHub"
-- ✅ Navigation menus updated
-- ✅ Product descriptions focus on footwear
-- ✅ Category names shoe-specific
-- ✅ README updated
-
-### **Quick Links**
-
-Mobile menu now includes:
-- New Arrivals - Latest shoe drops
-- Best Sellers - Popular footwear
-- Sale - Discounted shoes
-- My Orders - Order history
-- Addresses - Shipping addresses
-
----
-
-## 🚀 **Quick Start with New Features**
-
-```bash
-# 1. Start the app
-npm run dev
-
-# 2. Visit homepage
-open http://localhost:3000
-
-# 3. Sign in or create account
-# Navigate to: Sign In or Sign Up
-
-# 4. Add your first address
-# User Menu → Addresses → Add Address
-
-# 5. Browse shoes
-# Shop → All Shoes / Men's / Women's / Kids'
-```
-
----
-
-## 📱 **User Journey Examples**
-
-### **Adding a Shipping Address**
-
-1. Sign in to your account
-2. Click your name → "Addresses"
-3. Click "Add Address" button
-4. Fill in the form:
-   - Full Name: "John Doe"
-   - Phone: "(555) 123-4567"
-   - Address: "123 Main Street"
-   - Apartment: "Apt 4B" (optional)
-   - City: "New York"
-   - State: "NY"
-   - Postal Code: "10001"
-   - Country: "United States"
-5. Select address type: "Shipping"
-6. Check "Set as default" (optional)
-7. Click "Add Address"
-8. Success! Address saved
-
-### **Shopping for Shoes**
-
-1. Visit homepage
-2. Click "Shop" → "Men's Shoes"
-3. Browse sneakers, boots, formal shoes
-4. Click a product to view details
-5. Select size and add to cart
-6. At checkout, select your saved address
-7. Complete purchase
-
----
-
-## 🎨 **New Components**
-
-### **AddressCard**
-Beautiful card component to display addresses:
-- Shows address type badge
-- Default address indicator
-- Phone and full address
-- Edit and delete buttons
-- Set default action
-
-### **AddressForm**
-Comprehensive form with:
-- All required fields
-- Real-time validation
-- Country selector (195+ countries worldwide)
-- Address type radio buttons
-- Default address checkbox
-- Responsive layout
-
-### **Address Management Page**
-Full-featured address management:
-- Grid layout for addresses
-- Add/Edit dialogs
-- Delete confirmations
-- Empty state handling
-- Loading states
-- Toast notifications
-
----
-
-## 🔄 **Migration Notes**
-
-**From StyleHub to ShoeHub:**
-- No database changes required
-- Navigation automatically updated
-- Existing products work as-is
-- Update product data to reflect footwear:
-  - Change "Men" category to men's shoes
-  - Change "Women" to women's shoes
-  - Add "Sneakers", "Boots", "Sandals" categories
-  - Update product descriptions
-
-**To update existing products:**
-```sql
--- Update category names in database
-UPDATE categories SET name = 'Men''s Shoes', description = 'Men''s footwear collection' WHERE slug = 'men';
-UPDATE categories SET name = 'Women''s Shoes', description = 'Women''s footwear collection' WHERE slug = 'women';
-UPDATE categories SET name = 'Kids'' Shoes', description = 'Children''s footwear' WHERE slug = 'kids';
-```
-
----
-
-## 🎊 **What's Next?**
-
-**Completed Features:**
-- ✅ Address management system
-- ✅ ShoeHub rebranding
-- ✅ Navigation updates
-- ✅ Shoe-specific categories
-
-**Coming Soon (Optional):**
-- ⏳ Checkout address selector
-- ⏳ Guest checkout addresses
-- ⏳ Address validation API
-- ⏳ International shipping
-- ⏳ Size guide for shoes
-- ⏳ Shoe-specific filters (size, width, brand)
-
----
-
-**ShoeHub is now ready for footwear e-commerce!** 👟🎉
-
-# full-stack-project
