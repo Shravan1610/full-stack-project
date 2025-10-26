@@ -1,0 +1,23 @@
+{
+  "name": "stylehub-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/client",
+    "build": "npm run build --workspace=apps/client",
+    "start": "npm run start --workspace=apps/client",
+    "lint": "npm run lint --workspace=apps/client",
+    "typecheck": "npm run typecheck --workspace=apps/client",
+    "clean": "rm -rf apps/client/node_modules apps/client/.next apps/client/out packages/*/node_modules node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "20.6.2",
+    "@types/react": "18.2.22",
+    "@types/react-dom": "18.2.7",
+    "typescript": "5.2.2"
+  }
+}

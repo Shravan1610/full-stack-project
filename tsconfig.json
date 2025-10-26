@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/database": ["./packages/database"],
+      "@repo/database/*": ["./packages/database/*"],
+      "@repo/shared-lib": ["./packages/shared-lib"],
+      "@repo/shared-lib/*": ["./packages/shared-lib/*"],
+      "@repo/shared-ui": ["./packages/shared-ui"],
+      "@repo/shared-ui/*": ["./packages/shared-ui/*"]
+    }
+  },
+  "include": ["apps/**/*", "packages/**/*"],
+  "exclude": ["node_modules", "apps/*/node_modules", "packages/*/node_modules"]
+}
