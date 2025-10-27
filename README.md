@@ -43,7 +43,7 @@ node make-admin.js your@email.com
 ```
 
 **Alternative Method** (Manual):
-1. Go to Supabase Dashboard: https://supabase.com/dashboard/project/ribcvlvrxcadztnxqhce
+1. Go to your Supabase Dashboard
 2. Table Editor → profiles → Find your user → Set role to `admin`
 3. Sign out and sign in again
 
@@ -355,7 +355,7 @@ node make-admin.js user@example.com
 ```
 
 **Method 2: Supabase Dashboard**
-1. Go to https://supabase.com/dashboard/project/ribcvlvrxcadztnxqhce
+1. Go to your Supabase project dashboard
 2. Table Editor → profiles
 3. Find your user → Set role to `admin`
 4. Sign out and sign back in
@@ -538,9 +538,9 @@ setDefaultAddress(userId, addressId) // Set default
 
 2. **Environment Variables:**
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://ribcvlvrxcadztnxqhce.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
    ```
 
 3. **Deploy:**
@@ -615,6 +615,86 @@ setDefaultAddress(userId, addressId) // Set default
 3. Review RLS policies in database
 4. Clear browser cookies
 5. Test with different browser/incognito
+
+---
+
+## 🔒 Security Best Practices
+
+### Rate Limiting for Admin API Routes
+
+**Recommendation:** Implement rate limiting on admin API routes to prevent brute force attacks and abuse.
+
+#### Suggested Libraries
+
+1. **upstash/ratelimit** - Redis-based rate limiting (recommended for production)
+2. **express-rate-limit** - In-memory rate limiting (good for development)
+3. **@vercel/kv** - Vercel KV store for rate limiting
+
+#### Example Implementation
+
+```typescript
+// middleware/rateLimit.ts
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "10 s"), // 10 requests per 10 seconds
+});
+
+export async function checkRateLimit(identifier: string) {
+  const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
+  
+  if (!success) {
+    throw new Error("Rate limit exceeded");
+  }
+  
+  return { limit, remaining, reset };
+}
+
+// Usage in API routes
+export async function GET(request: Request) {
+  try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    await checkRateLimit(`admin_api_${ip}`);
+    
+    // Your API logic here
+  } catch (error) {
+    if (error.message === "Rate limit exceeded") {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
+      );
+    }
+    // Handle other errors
+  }
+}
+```
+
+#### Simple In-Memory Rate Limiting
+
+For development or low-traffic scenarios:
+
+```typescript
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+
+export function simpleRateLimit(identifier: string, maxRequests: number = 10, windowMs: number = 60000) {
+  const now = Date.now();
+  const record = requestCounts.get(identifier);
+  
+  if (!record || now > record.resetTime) {
+    requestCounts.set(identifier, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (record.count >= maxRequests) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
+}
+```
 
 ---
 

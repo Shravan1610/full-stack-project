@@ -1,5 +1,5 @@
 {
-  "name": "stylehub-monorepo",
+  "name": "shoehub-monorepo",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -15,9 +15,9 @@
     "clean": "rm -rf apps/client/node_modules apps/client/.next apps/client/out packages/*/node_modules node_modules"
   },
   "devDependencies": {
-    "@types/node": "20.6.2",
-    "@types/react": "18.2.22",
-    "@types/react-dom": "18.2.7",
-    "typescript": "5.2.2"
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.6.0"
   }
 }

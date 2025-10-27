@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import {
   getOrCreateCart,
@@ -33,6 +33,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItemWithDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [cartId, setCartId] = useState<string | null>(null);
+  const isMergingRef = useRef(false);
   const [guestItems, setGuestItems] = useState<GuestCartItem[]>(() => {
     try {
       return getGuestCart();
@@ -68,9 +69,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // when user becomes available, merge guest cart into server cart
   const mergeGuestCart = useCallback(async () => {
-    if (!user) return;
+    if (!user || isMergingRef.current) return;
     if (!guestItems || guestItems.length === 0) return;
 
+    isMergingRef.current = true;
     try {
       // ensure server cart exists for user
       const cart = await getOrCreateCart(user.id);
@@ -92,6 +94,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setGuestItems([]);
     } catch (e) {
       console.error('Error merging guest cart:', e);
+    } finally {
+      isMergingRef.current = false;
     }
   }, [guestItems, user]);
 
@@ -125,6 +129,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     // Guest flow: persist to localStorage-backed guest cart
     try {
+      setLoading(true);
       const existingIndex = guestItems.findIndex(
         (g: GuestCartItem) => g.product_id === productId && g.variant_id === variantId
       );
@@ -152,6 +157,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error('Failed to add to guest cart', e);
       throw e;
+    } finally {
+      setLoading(false);
     }
   };
 

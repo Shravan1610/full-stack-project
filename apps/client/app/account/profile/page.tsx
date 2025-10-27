@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@repo/shared-ui';
+import { Input } from '@repo/shared-ui';
+import { Label } from '@repo/shared-ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/shared-ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@repo/database';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@repo/shared-ui';
 import { User, Mail, Save } from 'lucide-react';
 
 export default function ProfilePage() {

@@ -53,7 +53,7 @@ export default function SignUpPage() {
           <div className="flex justify-center mb-4">
             <Link href="/" className="flex items-center gap-2">
               <ShoppingBag className="h-8 w-8" />
-              <span className="text-2xl font-bold">StyleHub</span>
+              <span className="text-2xl font-bold">ShoeHub</span>
             </Link>
           </div>
           <CardTitle className="text-2xl">Create Account</CardTitle>

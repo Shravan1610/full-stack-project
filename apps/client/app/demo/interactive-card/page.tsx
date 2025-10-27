@@ -1,6 +1,6 @@
 "use client";
 
-import { InteractiveProductCard } from "@/components/ui/card-7";
+import { InteractiveProductCard } from "@repo/shared-ui";
 
 export default function InteractiveProductCardDemo() {
   return (
@@ -76,7 +76,7 @@ export default function InteractiveProductCardDemo() {
             <div>
               <h3 className="font-semibold mb-2">Import the component:</h3>
               <code className="block bg-background p-3 rounded">
-                {`import { InteractiveProductCard } from "@/components/ui/card-7";`}
+                {`import { InteractiveProductCard } from "@repo/shared-ui";`}
               </code>
             </div>
             <div>

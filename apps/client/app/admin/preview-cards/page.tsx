@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { InteractiveProductCard } from "@/components/ui/card-7";
+import { InteractiveProductCard } from "@repo/shared-ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@repo/shared-ui";
 import { Input } from "@repo/shared-ui";
 import { Label } from "@repo/shared-ui";
@@ -187,7 +187,7 @@ export default function AdminPreviewCardsPage() {
             <div>
               <h3 className="font-semibold mb-2">1. Import the Component</h3>
               <code className="block bg-slate-100 p-3 rounded text-sm">
-                {`import { InteractiveProductCard } from "@/components/ui/card-7";`}
+                {`import { InteractiveProductCard } from "@repo/shared-ui";`}
               </code>
             </div>
 

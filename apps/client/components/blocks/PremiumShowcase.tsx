@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { InteractiveProductCard } from "@/components/ui/card-7";
+import { InteractiveProductCard } from "@repo/shared-ui";
 import { getProducts } from "@repo/shared-lib";
 import { ProductWithDetails } from "@repo/database";
 import { Button } from "@repo/shared-ui";

@@ -1,11 +1,29 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@repo/shared-lib';
+import { requireAdmin, checkRateLimit, getRateLimitIdentifier } from '@repo/shared-lib';
 import { getAdminProductsServer, createProduct as createProductServer } from '@repo/shared-lib';
 
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : authHeader;
+    
+    // Rate limiting check
+    const identifier = getRateLimitIdentifier(request, token);
+    const rateLimitResult = await checkRateLimit(identifier);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'too_many_requests', message: 'Rate limit exceeded. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+    
     await requireAdmin(token);
 
     const url = new URL(request.url);
@@ -17,11 +35,23 @@ export async function GET(request: Request) {
 
     const result = await getAdminProductsServer({ search, category, status }, page, pageSize);
     return NextResponse.json(result);
-  } catch (err: any) {
-    if (err.message === 'Forbidden') {
+  } catch (err: unknown) {
+    const error = err as Error;
+    
+    // Handle specific error types
+    if (error.message === 'Forbidden') {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+    
+    // Log unexpected errors server-side
+    console.error('GET /api/admin/products error:', error);
+    
+    // Return generic 500 for all other errors
+    return NextResponse.json({ error: 'internal_server_error' }, { status: 500 });
   }
 }
 
@@ -29,15 +59,51 @@ export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : authHeader;
+    
+    // Rate limiting check
+    const identifier = getRateLimitIdentifier(request, token);
+    const rateLimitResult = await checkRateLimit(identifier);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'too_many_requests', message: 'Rate limit exceeded. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+    
     await requireAdmin(token);
 
     const body = await request.json();
     const product = await createProductServer(body);
     return NextResponse.json(product);
-  } catch (err: any) {
-    if (err.message === 'Forbidden') {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  } catch (err: unknown) {
+    const error = err as Error;
+    
+    // Handle Forbidden errors
+    if (error.message === 'Forbidden') {
+      return NextResponse.json({ error: 'forbidden', message: error.message }, { status: 403 });
     }
-    return NextResponse.json({ error: err.message || 'unauthorized' }, { status: 401 });
+    
+    // Handle Unauthorized errors
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'unauthorized', message: error.message }, { status: 401 });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError' || error.message?.includes('validation') || error.message?.includes('invalid')) {
+      return NextResponse.json({ error: 'validation_error', message: error.message }, { status: 400 });
+    }
+    
+    // Log unexpected errors server-side
+    console.error('POST /api/admin/products error:', error);
+    
+    // Return generic 500 for all other errors (database, unexpected errors)
+    return NextResponse.json({ error: 'internal_server_error' }, { status: 500 });
   }
 }

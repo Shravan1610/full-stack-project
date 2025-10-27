@@ -1,10 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './types';
 
 /**
  * Factory function to create an admin Supabase client with service role key.
  * This should be called from Next.js API routes where environment variables are available.
  */
-export function createAdminClient(url?: string, serviceRoleKey?: string) {
+export function createAdminClient(url?: string, serviceRoleKey?: string): SupabaseClient<Database> {
   const supabaseUrl = url || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseServiceKey = serviceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || process.env.NEXT_SUPABASE_SERVICE_ROLE;
 
@@ -24,13 +25,13 @@ export function createAdminClient(url?: string, serviceRoleKey?: string) {
  * Lazy-initialized admin client singleton.
  * This will be created on first access using environment variables from the calling context.
  */
-let _adminSupabase: any | null = null;
+let _adminSupabase: SupabaseClient<Database> | null = null;
 
-export const adminSupabase: any = new Proxy({} as any, {
+export const adminSupabase: SupabaseClient<Database> = new Proxy({} as SupabaseClient<Database>, {
   get(_target, prop) {
     if (!_adminSupabase) {
       _adminSupabase = createAdminClient();
     }
-    return (_adminSupabase as any)[prop];
+    return (_adminSupabase as SupabaseClient<Database>)[prop as keyof SupabaseClient<Database>];
   },
 });

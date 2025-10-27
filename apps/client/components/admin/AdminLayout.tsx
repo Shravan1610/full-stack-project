@@ -4,8 +4,8 @@ import { ReactNode, useState } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminBreadcrumb from './AdminBreadcrumb';
 import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@repo/shared-ui';
+import { Sheet, SheetContent, SheetTrigger } from '@repo/shared-ui';
 
 interface AdminLayoutProps {
   children?: ReactNode;

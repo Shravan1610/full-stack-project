@@ -8,8 +8,8 @@ import { Toaster } from '@repo/shared-ui';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'StyleHub - Premium Fashion Store',
-  description: 'Discover the latest trends in fashion with StyleHub. Shop premium clothing, accessories, and more.',
+  title: 'ShoeHub - Premium Footwear E-Commerce',
+  description: 'Discover the latest trends in footwear with ShoeHub. Shop premium shoes, sneakers, and more.',
 };
 
 export default function RootLayout({

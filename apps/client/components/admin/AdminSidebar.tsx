@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Store, LogOut, User } from 'lucide-react';
 import { cn } from '@repo/shared-lib';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '@repo/shared-ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +13,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+} from '@repo/shared-ui';
+import { Avatar, AvatarFallback } from '@repo/shared-ui';
 import { adminNavigation } from '@/config/admin-navigation';
 
 interface AdminSidebarProps {
@@ -58,7 +58,7 @@ export default function AdminSidebar({ mobile = false, onNavigate }: AdminSideba
         <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-200">
           <Store className="h-8 w-8 text-blue-600" />
           <div>
-            <h1 className="text-xl font-bold text-gray-900">StyleHub</h1>
+            <h1 className="text-xl font-bold text-gray-900">ShoeHub</h1>
             <p className="text-xs text-gray-500">Admin Portal</p>
           </div>
         </div>

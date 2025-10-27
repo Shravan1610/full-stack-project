@@ -6,7 +6,12 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: ['qeqzizvpzwmfvkqhavkw.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'qeqzizvpzwmfvkqhavkw.supabase.co',
+      },
+    ],
   },
 };
 

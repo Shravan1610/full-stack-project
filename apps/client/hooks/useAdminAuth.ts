@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@repo/database';
+import type { User } from '@supabase/supabase-js';
+import type { Profile } from '@repo/database';
 
 interface AdminAuthState {
   isAdmin: boolean;
   loading: boolean;
-  user: any | null;
-  profile: any | null;
+  user: User | null;
+  profile: Profile | null;
   error?: string;
 }
 
@@ -22,11 +24,7 @@ export function useAdminAuth(redirectOnFail: boolean = true): AdminAuthState {
     error: undefined,
   });
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       console.log('[useAdminAuth] Starting admin access check...');
       
@@ -105,7 +103,11 @@ export function useAdminAuth(redirectOnFail: boolean = true): AdminAuthState {
         error: error instanceof Error ? error.message : 'Authentication error',
       });
     }
-  };
+  }, [redirectOnFail, router]);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, [checkAdminAccess]);
 
   return state;
 }

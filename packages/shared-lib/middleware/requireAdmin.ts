@@ -20,7 +20,7 @@ export async function requireAdmin(userId: string): Promise<AdminCheckResult> {
     throw new Error('Failed to verify admin status');
   }
 
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
     throw new Error('Forbidden');
   }
 
