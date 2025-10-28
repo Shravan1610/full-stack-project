@@ -11,6 +11,5 @@ export * from './api/admin/categories';
 export * from './api/admin/promoCodes';
 export * from './storage/guestCart';
 export * from './middleware/requireAdmin';
-export * from './middleware/rateLimit';
 export { cn } from './utils';
 

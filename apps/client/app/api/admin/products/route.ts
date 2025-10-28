@@ -1,28 +1,11 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin, checkRateLimit, getRateLimitIdentifier } from '@repo/shared-lib';
+import { requireAdmin } from '@repo/shared-lib';
 import { getAdminProductsServer, createProduct as createProductServer } from '@repo/shared-lib';
 
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : authHeader;
-    
-    // Rate limiting check
-    const identifier = getRateLimitIdentifier(request, token);
-    const rateLimitResult = await checkRateLimit(identifier);
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'too_many_requests', message: 'Rate limit exceeded. Please try again later.' },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': String(rateLimitResult.reset),
-          }
-        }
-      );
-    }
     
     await requireAdmin(token);
 
@@ -59,23 +42,6 @@ export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : authHeader;
-    
-    // Rate limiting check
-    const identifier = getRateLimitIdentifier(request, token);
-    const rateLimitResult = await checkRateLimit(identifier);
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'too_many_requests', message: 'Rate limit exceeded. Please try again later.' },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': String(rateLimitResult.reset),
-          }
-        }
-      );
-    }
     
     await requireAdmin(token);
 

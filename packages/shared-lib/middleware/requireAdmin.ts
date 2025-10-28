@@ -5,24 +5,32 @@ type AdminCheckResult = {
   role: string;
 };
 
-export async function requireAdmin(userId: string): Promise<AdminCheckResult> {
-  if (!userId) {
+export async function requireAdmin(accessToken?: string): Promise<AdminCheckResult> {
+  if (!accessToken) {
     throw new Error('Unauthorized');
   }
 
-  const { data: profile, error } = await adminSupabase
+  // Validate token and get user
+  const { data, error } = await adminSupabase.auth.getUser(accessToken);
+  if (error || !data?.user) {
+    throw new Error('Unauthorized');
+  }
+
+  const userId = data.user.id;
+
+  const { data: profile, error: profileError } = await adminSupabase
     .from('profiles')
     .select('id, role')
     .eq('id', userId)
     .maybeSingle();
 
-  if (error) {
+  if (profileError) {
     throw new Error('Failed to verify admin status');
   }
 
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+  if (!profile || ((profile as any).role !== 'admin' && (profile as any).role !== 'super_admin')) {
     throw new Error('Forbidden');
   }
 
-  return { userId: profile.id, role: profile.role };
+  return { userId: (profile as any).id, role: (profile as any).role };
 }
