@@ -1,11 +1,18 @@
 import { adminSupabase } from '@repo/database';
 
+type UserRole = 'customer' | 'admin' | 'super_admin';
+
+interface ProfileRow {
+  id: string;
+  role: UserRole;
+}
+
 type AdminCheckResult = {
   userId: string;
-  role: string;
+  role: UserRole;
 };
 
-export async function requireAdmin(accessToken?: string): Promise<AdminCheckResult> {
+export async function requireAdmin(accessToken: string): Promise<AdminCheckResult> {
   if (!accessToken) {
     throw new Error('Unauthorized');
   }
@@ -28,9 +35,12 @@ export async function requireAdmin(accessToken?: string): Promise<AdminCheckResu
     throw new Error('Failed to verify admin status');
   }
 
-  if (!profile || ((profile as any).role !== 'admin' && (profile as any).role !== 'super_admin')) {
+  // Type assertion for the profile data returned from Supabase
+  const typedProfile = profile as ProfileRow | null;
+
+  if (!typedProfile || (typedProfile.role !== 'admin' && typedProfile.role !== 'super_admin')) {
     throw new Error('Forbidden');
   }
 
-  return { userId: (profile as any).id, role: (profile as any).role };
+  return { userId: typedProfile.id, role: typedProfile.role };
 }
